@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GofioGourmet - Menús Semanales</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            margin: 0;
+            padding: 0;
+            color: #343a40;
+        }
+
+        header {
+            background: linear-gradient(135deg, #343a40, #212529);
+            color: #fff;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* Aquí puedes añadir el logo */
+        /* .logo {
+            width: 50px;
+            height: auto;
+        } */
+
+        .cart-button {
+            background: linear-gradient(135deg, #28a745, #218838);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .cart-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .cart {
+            display: none;
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 300px;
+            z-index: 1000;
+        }
+
+        .cart h2 {
+            margin: 0 0 15px;
+            color: #343a40;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .cart ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .cart ul li {
+            margin: 10px 0;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .cart-total {
+            font-weight: bold;
+            text-align: right;
+            margin-top: 20px;
+            color: #343a40;
+            font-size: 1rem;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .menu-category {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin: 15px 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .menu-category:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-category h2 {
+            text-align: center;
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            padding: 10px;
+            border-radius: 5px;
+            margin: -20px -20px 20px -20px;
+        }
+
+        .menu-item {
+            margin: 15px 0;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .menu-item h3 {
+            margin: 0;
+            color: #343a40;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .menu-item p {
+            margin: 5px 0;
+            color: #777;
+            font-size: 0.9rem;
+        }
+
+        .menu-item select {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 0.9rem;
+            border: 1px solid #ddd;
+            background: #f8f9fa;
+        }
+
+        .menu-item button {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            width: 100%;
+            margin-top: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .menu-item button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .details {
+            display: none;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .offer {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #28a745, #218838);
+            color: #fff;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .offer:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .offer h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .weekly-menu {
+            display: none;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+
+        .weekly-menu h3 {
+            text-align: center;
+            color: #343a40;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .weekly-menu ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .weekly-menu ul li {
+            margin: 10px 0;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .weekly-menu button {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .weekly-menu button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <!-- Aquí puedes añadir el logo -->
+        <!-- <img src="ruta/a/tu/logo.png" alt="Logo GofioGourmet" class="logo"> -->
+        <h1>GofioGourmet</h1>
+        <button class="cart-button" onclick="toggleCart()">Carrito (<span id="cartCount">0</span>)</button>
+    </header>
+
+    <!-- Carrito de Compras -->
+    <div class="cart" id="cart">
+        <h2>Carrito de Compras</h2>
+        <ul id="cartItems"></ul>
+        <div class="cart-total" id="cartTotal">Total: €0.00</div>
+    </div>
+
+    <!-- Oferta Semanal Actual -->
+    <div class="offer" onclick="toggleWeeklyMenu('currentWeek')">
+        <h2>¡Oferta Especial! Menú Semanal: Primer y Segundo Plato por solo €35</h2>
+    </div>
+    <div class="weekly-menu" id="currentWeek">
+        <h3>Menú de la Semana Actual</h3>
+        <ul>
+            <li><strong>Lunes:</strong> Pechuga de Pollo a la Parrilla (350 kcal) + Ensalada de Quinoa (300 kcal)</li>
+            <li><strong>Martes:</strong> Curry de Garbanzos (400 kcal) + Hamburguesa de Lentejas (320 kcal)</li>
+            <li><strong>Miércoles:</strong> Salmón al Horno (400 kcal) + Brócoli al Vapor (150 kcal)</li>
+            <li><strong>Jueves:</strong> Falafel (320 kcal) + Hummus (200 kcal)</li>
+            <li><strong>Viernes:</strong> Lasaña de Carne (450 kcal) + Ensalada César (250 kcal)</li>
+            <li><strong>Sábado:</strong> Paella de Mariscos (500 kcal) + Gazpacho (150 kcal)</li>
+            <li><strong>Domingo:</strong> Pollo al Curry (400 kcal) + Arroz Basmati (300 kcal)</li>
+        </ul>
+        <button onclick="addWeeklyMenuToCart('Menú Semanal Actual', 35, 2500)">Añadir al Carrito</button>
+    </div>
+
+    <!-- Oferta Semanal Próxima -->
+    <div class="offer" onclick="toggleWeeklyMenu('nextWeek')">
+        <h2>¡Oferta Especial! Menú Semanal de la Próxima Semana: Primer y Segundo Plato por solo €35</h2>
+    </div>
+    <div class="weekly-menu" id="nextWeek">
+        <h3>Menú de la Próxima Semana</h3>
+        <ul>
+            <li><strong>Lunes:</strong> Salmón al Horno (400 kcal) + Brócoli al Vapor (150 kcal)</li>
+            <li><strong>Martes:</strong> Falafel (320 kcal) + Hummus (200 kcal)</li>
+            <li><strong>Miércoles:</strong> Pechuga de Pollo a la Parrilla (350 kcal) + Ensalada de Quinoa (300 kcal)</li>
+            <li><strong>Jueves:</strong> Curry de Garbanzos (400 kcal) + Hamburguesa de Lentejas (320 kcal)</li>
+            <li><strong>Viernes:</strong> Lasaña de Carne (450 kcal) + Ensalada César (250 kcal)</li>
+            <li><strong>Sábado:</strong> Paella de Mariscos (500 kcal) + Gazpacho (150 kcal)</li>
+            <li><strong>Domingo:</strong> Pollo al Curry (400 kcal) + Arroz Basmati (300 kcal)</li>
+        </ul>
+        <button onclick="addWeeklyMenuToCart('Menú Semanal Próxima Semana', 35, 2500)">Añadir al Carrito</button>
+    </div>
+
+    <!-- Menús -->
+    <div class="menu">
+        <!-- Menú Fitness -->
+        <div class="menu-category" onclick="toggleMenu('fitness')">
+            <h2>Menú Fitness</h2>
+            <div id="fitness" style="display: none;">
+                <div class="menu-item" >
+                    <h3>Pechuga de Pollo a la Parrilla</h3>
+                    <p id="fitness1Price">Precio: €7.00 | 350 kcal</p>
+                    <select id="fitness1Select" onchange="updatePrice('fitness1', this.value)">
+                        <option value="small">Pequeño (€5 | 300 kcal)</option>
+                        <option value="normal" selected>Normal (€7 | 350 kcal)</option>
+                        <option value="large">Grande (€9 | 400 kcal)</option>
+                    </select>
+                    <button onclick="addToCart('Pechuga de Pollo a la Parrilla', 'fitness1')">Añadir al Carrito</button>
+                    <a href="" onclick="toggleDetails('fitness1')">Más información</a>
+                    <div id="fitness1" class="details">
+                        <p>Ingredientes: 200g de pechuga de pollo, 1 cucharada de aceite de oliva, sal, pimienta, 1/2 limón.</p>
+                    </div>
+                </div>
+                <div class="menu-item">
+                    <h3>Ensalada de Quinoa</h3>
+                    <p id="fitness2Price">Precio: €6.00 | 300 kcal</p>
+                    <select id="fitness2Select" onchange="updatePrice('fitness2', this.value)">
+                        <option value="small">Pequeño (€4 | 250 kcal)</option>
+                        <option value="normal" selected>Normal (€6 | 300 kcal)</option>
+                        <option value="large">Grande (€8 | 350 kcal)</option>
+                    </select>
+                    <button onclick="addToCart('Ensalada de Quinoa', 'fitness2')">Añadir al Carrito</button>
+                    <a href="" onclick="toggleDetails('fitness2')">Más información</a>
+                    <div id="fitness2" class="details">
+                        <p>Ingredientes: 100g de quinoa, 1/2 aguacate, 1 tomate, 1/2 pepino, jugo de 1 limón, 1 cucharada de aceite de oliva.</p>
+                    </div>
+                </div>
+                <div class="menu-item">
+                    <h3>Salmón al Horno</h3>
+                    <p id="fitness3Price">Precio: €8.00 | 400 kcal</p>
+                    <select id="fitness3Select" onchange="updatePrice('fitness3', this.value)">
+                        <option value="small">Pequeño (€6 | 350 kcal)</option>
+                        <option value="normal" selected>Normal (€8 | 400 kcal)</option>
+                        <option value="large">Grande (€10 | 450 kcal)</option>
+                    </select>
+                    <button onclick="addToCart('Salmón al Horno', 'fitness3')">Añadir al Carrito</button>
+                    <a href="" onclick="toggleDetails('fitness3')">Más información</a>
+                    <div id="fitness3" class="details">
+                        <p>Ingredientes: 200g de salmón, 1 cucharada de aceite de oliva, limón, eneldo, sal, pimienta.</p>
+                    </div>
+                </div>
+            </div>
+           
+        </div>
+
+        <!-- Menú Vegano -->
+        <div class="menu-category" onclick="toggleMenu('vegano')">
+            <h2>Menú Vegano</h2>
+            <div id="vegano" style="display: none;">
+                <div class="menu-item">
+                    <h3>Curry de Garbanzos</h3>
+                    <p id="vegano1Price">Precio: €8.00 | 400 kcal</p>
+                    <select id="vegano1Select" onchange="updatePrice('vegano1', this.value)">
+                        <option value="small">Pequeño (€6 | 350 kcal)</option>
+                        <option value="normal" selected>Normal (€8 | 400 kcal)</option>
+                        <option value="large">Grande (€10 | 450 kcal)</option>
+                    </select>
+                    <button onclick="addToCart('Curry de Garbanzos', 'vegano1')">Añadir al Carrito</button>
+                    <a href="" onclick="toggleDetails('vegano1')">Más información</a>
+                    <div id="vegano1" class="details">
+                        <p>Ingredientes: 200g de garbanzos, 200ml de leche de coco, 1 cebolla, 2 dientes de ajo, 1 cucharada de curry, 1 tomate.</p>
+                    </div>
+                </div>
+                <div class="menu-item">
+                    <h3>Hamburguesa de Lentejas</h3>
+                    <p id="vegano2Price">Precio: €6.50 | 320 kcal</p>
+                    <select id="vegano2Select" onchange="updatePrice('vegano2', this.value)">
+                        <option value="small">Pequeño (€5 | 280 kcal)</option>
+                        <option value="normal" selected>Normal (€6.5 | 320 kcal)</option>
+                        <option value="large">Grande (€8 | 360 kcal)</option>
+                    </select>
+                    <button onclick="addToCart('Hamburguesa de Lentejas', 'vegano2')">Añadir al Carrito</button>
+                    <a href="" onclick="toggleDetails('vegano2')">Más información</a>
+                    <div id="vegano2" class="details">
+                        <p>Ingredientes: 150g de lentejas cocidas, 50g de avena, 1 cebolla, 2 dientes de ajo, especias al gusto.</p>
+                    </div>
+                </div>
+                <div class="menu-item">
+                    <h3>Falafel</h3>
+                    <p id="vegano3Price">Precio: €5.50 | 320 kcal</p>
+                    <select id="vegano3Select" onchange="updatePrice('vegano3', this.value)">
+                        <option value="small">Pequeño (€4 | 280 kcal)</option>
+                        <option value="normal" selected>Normal (€5.5 | 320 kcal)</option>
+                        <option value="large">Grande (€7 | 360 kcal)</option>
+                    </select>
+                    <button onclick="addToCart('Falafel', 'vegano3')">Añadir al Carrito</button>
+                    <a href="" onclick="toggleDetails('vegano3')">Más información</a>
+                    <div id="vegano3" class="details">
+                        <p>Ingredientes: 150g de garbanzos, perejil, cilantro, ajo, comino, harina de garbanzo.</p>
+                    </div>
+                </div>  
+            </div>
+            
+        </div>
+
+        <!-- Menú Normal -->
+        <div class="menu-category" onclick="toggleMenu('normal')">
+            <h2>Menú Variado</h2>
+            <div id="normal" style="display: none;">
+                <div class="menu-item" >
+                    <h3>Lasaña de Carne</h3>
+                    <p id="normal1Price">Precio: €9.00 | 450 kcal</p>
+                    <select id="normal1Select" onchange="updatePrice('normal1', this.value)">
+                        <option value="small">Pequeño (€7 | 400 kcal)</option>
+                        <option value="normal" selected>Normal (€9 | 450 kcal)</option>
+                        <option value="large">Grande (€11 | 500 kcal)</option>
+                    </select>
+                    <button onclick="addToCart('Lasaña de Carne', 'normal1')">Añadir al Carrito</button>
+                    <a href="" onclick="toggleDetails('normal1')">Más información</a>
+                    <div id="normal1" class="details">
+                        <p>Ingredientes: 200g de carne picada, 200ml de salsa de tomate, 6 láminas de lasaña, 100g de queso, 100ml de bechamel.</p>
+                    </div>
+                </div>
+                <div class="menu-item">
+                    <h3>Paella de Mariscos</h3>
+                    <p id="normal2Price">Precio: €10.00 | 500 kcal</p>
+                    <select id="normal2Select" onchange="updatePrice('normal2', this.value)">
+                        <option value="small">Pequeño (€8 | 450 kcal)</option>
+                        <option value="normal" selected>Normal (€10 | 500 kcal)</option>
+                        <option value="large">Grande (€12 | 550 kcal)</option>
+                    </select>
+                    <button onclick="addToCart('Paella de Mariscos', 'normal2')">Añadir al Carrito</button>
+                    <a href="" onclick="toggleDetails('normal2')">Más información</a>
+                    <div id="normal2" class="details">
+                        <p>Ingredientes: 200g de arroz, 500ml de caldo de pescado, 200g de mariscos, 1 pimiento, 1 cebolla, azafrán al gusto.</p>
+                    </div>
+                </div>
+                <div class="menu-item">
+                    <h3>Pollo al Curry</h3>
+                    <p id="normal3Price">Precio: €8.50 | 400 kcal</p>
+                    <select id="normal3Select" onchange="updatePrice('normal3', this.value)">
+                        <option value="small">Pequeño (€6.5 | 350 kcal)</option>
+                        <option value="normal" selected>Normal (€8.5 | 400 kcal)</option>
+                        <option value="large">Grande (€10.5 | 450 kcal)</option>
+                    </select>
+                    <button onclick="addToCart('Pollo al Curry', 'normal3')">Añadir al Carrito</button>
+                    <a href="" onclick="toggleDetails('normal3')">Más información</a>
+                    <div id="normal3" class="details">
+                        <p>Ingredientes: 200g de pollo, 200ml de leche de coco, 1 cebolla, 2 dientes de ajo, 1 cucharada de curry, 1 tomate.</p>
+                    </div>
+                </div>
+            </div>   
+            </div>
+            
+    </div>
+
+    <script>
+        let cart = [];
+        let total = 0;
+
+        function toggleCart() {
+            const cartDiv = document.getElementById("cart");
+            if (cartDiv.style.display === "none" || cartDiv.style.display === "") {
+                cartDiv.style.display = "block";
+            } else {
+                cartDiv.style.display = "none";
+            }
+        }
+        function toggleMenu(menuId) {
+            const menu = document.getElementById(menuId);
+            if (menu.style.display === "none" || menu.style.display === "") {
+                menu.style.display = "block";
+            } 
+        }
+
+        function toggleDetails(itemId) {
+            const detailsDiv = document.getElementById(itemId);
+            if (detailsDiv.style.display === "none" || detailsDiv.style.display === "") {
+                detailsDiv.style.display = "block";
+            } else {
+                detailsDiv.style.display = "none";
+            }
+        }
+
+        function toggleWeeklyMenu(weekId) {
+            const weeklyMenu = document.getElementById(weekId);
+            if (weeklyMenu.style.display === "none" || weeklyMenu.style.display === "") {
+                weeklyMenu.style.display = "block";
+            } else {
+                weeklyMenu.style.display = "none";
+            }
+        }
+
+        function updatePrice(itemId, size) {
+            const prices = {
+                fitness1: { small: [5, 300], normal: [7, 350], large: [9, 400] },
+                fitness2: { small: [4, 250], normal: [6, 300], large: [8, 350] },
+                fitness3: { small: [6, 350], normal: [8, 400], large: [10, 450] },
+                vegano1: { small: [6, 350], normal: [8, 400], large: [10, 450] },
+                vegano2: { small: [5, 280], normal: [6.5, 320], large: [8, 360] },
+                vegano3: { small: [4, 280], normal: [5.5, 320], large: [7, 360] },
+                normal1: { small: [7, 400], normal: [9, 450], large: [11, 500] },
+                normal2: { small: [8, 450], normal: [10, 500], large: [12, 550] },
+                normal3: { small: [6.5, 350], normal: [8.5, 400], large: [10.5, 450] },
+            };
+            const [price, kcal] = prices[itemId][size];
+            document.getElementById(`${itemId}Price`).innerText = `Precio: €${price.toFixed(2)} | ${kcal} kcal`;
+        }
+
+        function addToCart(name, itemId) {
+            const sizeSelect = document.getElementById(`${itemId}Select`);
+            if (!sizeSelect) {
+                console.error(`No se encontró el elemento select con id ${itemId}Select`);
+                return;
+            }
+            const size = sizeSelect.value;
+            const priceText = document.getElementById(`${itemId}Price`).innerText;
+            const price = parseFloat(priceText.split("€")[1].split(" ")[0]);
+            const kcal = parseInt(priceText.split("|")[1].trim().split(" ")[0]);
+
+            cart.push({ name, size, price, kcal });
+            total += price;
+
+            updateCart();
+        }
+
+        function addWeeklyMenuToCart(name, price, kcal) {
+            cart.push({ name, size: "Semanal", price, kcal });
+            total += price;
+            updateCart();
+        }
+
+        function updateCart() {
+            const cartItems = document.getElementById("cartItems");
+            const cartTotal = document.getElementById("cartTotal");
+            const cartCount = document.getElementById("cartCount");
+
+            cartItems.innerHTML = "";
+            cart.forEach((item, index) => {
+                const li = document.createElement("li");
+                li.innerText = `${item.name} (${item.size}) - €${item.price.toFixed(2)} | ${item.kcal} kcal`;
+                cartItems.appendChild(li);
+            });
+
+            cartTotal.innerText = `Total: €${total.toFixed(2)}`;
+            cartCount.innerText = cart.length;
+        }
+    </script>
+
+</body>
+</html>
