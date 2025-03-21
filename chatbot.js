@@ -142,9 +142,11 @@ document.getElementById('chatbot-logo').addEventListener('click', function() {
     const chatbotLogo = document.getElementById('chatbot-logo');
     const chatbot = document.getElementById('chatbot');
     chatbotLogo.style.animation = 'spin 0.5s ease';
+
     setTimeout(() => {
         chatbotLogo.style.animation = '';
     }, 500);
+
     if (chatbot.classList.contains('show')) {
         chatbot.classList.remove('show');
         setTimeout(() => {
@@ -154,7 +156,10 @@ document.getElementById('chatbot-logo').addEventListener('click', function() {
         chatbot.style.display = 'block';
         setTimeout(() => {
             chatbot.classList.add('show');
-            appendMessage('bot', 'Hola, buenas tardes. ¿En qué puedo ayudarte?');
+            if (!chatbot.dataset.messageShown) {
+                appendMessage('bot', 'Hola, buenas tardes. ¿En qué puedo ayudarte?');
+                chatbot.dataset.messageShown = true; // Marcamos que el mensaje ya se mostró
+            }
         }, 10);
     }
 });
