@@ -1,36 +1,3 @@
-// Añadir Bootstrap CSS
-const bootstrapCSS = document.createElement('link');
-bootstrapCSS.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
-bootstrapCSS.rel = 'stylesheet';
-document.head.appendChild(bootstrapCSS);
-
-// Añadir daterangepicker CSS
-const daterangepickerCSS = document.createElement('link');
-daterangepickerCSS.href = 'https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css';
-daterangepickerCSS.rel = 'stylesheet';
-document.head.appendChild(daterangepickerCSS);
-
-// Añadir jQuery
-const jQueryScript = document.createElement('script');
-jQueryScript.src = 'https://code.jquery.com/jquery-3.5.1.min.js';
-document.head.appendChild(jQueryScript);
-
-// Añadir Bootstrap JS
-const bootstrapScript = document.createElement('script');
-bootstrapScript.src = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js';
-document.head.appendChild(bootstrapScript);
-
-// Añadir moment.js
-const momentScript = document.createElement('script');
-momentScript.src = 'https://cdn.jsdelivr.net/momentjs/latest/moment.min.js';
-document.head.appendChild(momentScript);
-
-// Añadir daterangepicker JS
-const daterangepickerScript = document.createElement('script');
-daterangepickerScript.src = 'https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js';
-document.head.appendChild(daterangepickerScript);
-
-
 // Añadir estilos al documento
 const style = document.createElement('style');
 style.innerHTML = `
@@ -193,6 +160,25 @@ style.innerHTML = `
     .language-selector {
         margin-bottom: 15px;
     }
+    .language-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 10px;
+    }
+    .language-options button {
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 5px 10px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background 0.3s;
+    }
+    .language-options button:hover {
+        background: #0056b3;
+    }
 `;
 document.head.appendChild(style);
 
@@ -236,31 +222,100 @@ let reservationData = {
     language: 'es' // Idioma por defecto
 };
 
-// Modificar el evento de clic del logo del chatbot
-document.getElementById('chatbot-logo').addEventListener('click', function() {
-    const chatbotLogo = document.getElementById('chatbot-logo');
-    const chatbot = document.getElementById('chatbot');
-    chatbotLogo.style.animation = 'spin 0.5s ease';
-    setTimeout(() => {
-        chatbotLogo.style.animation = '';
-    }, 500);
-    if (chatbot.classList.contains('show')) {
-        chatbot.classList.remove('show');
-        setTimeout(() => {
-            chatbot.style.display = 'none';
-        }, 300);
+// ==================== SISTEMA DE CARGA DE DEPENDENCIAS ====================
+
+const resources = {
+  css: [
+    'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css',
+    'https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css'
+  ],
+  js: [
+    {
+      src: 'https://code.jquery.com/jquery-3.6.0.min.js',
+      integrity: 'sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=',
+      crossorigin: 'anonymous'
+    },
+    'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js',
+    {
+      src: 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js',
+      integrity: 'sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV',
+      crossorigin: 'anonymous'
+    },
+    'https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js'
+  ]
+};
+
+function loadResource(resource) {
+  return new Promise((resolve, reject) => {
+    if (typeof resource === 'string' && resource.endsWith('.css')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = resource;
+      link.onload = resolve;
+      link.onerror = reject;
+      document.head.appendChild(link);
     } else {
-        chatbot.style.display = 'block';
-        setTimeout(() => {
-            chatbot.classList.add('show');
-            if (!chatbot.dataset.greeted) {
-                askForLanguage();
-                chatbot.dataset.greeted = 'true';
-            }
-        }, 10);
+      const script = document.createElement('script');
+      script.src = resource.src || resource;
+      if (resource.integrity) script.integrity = resource.integrity;
+      if (resource.crossorigin) script.crossOrigin = resource.crossorigin;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
     }
-});
-// Función para preguntar por el idioma
+  });
+}
+let dependenciesLoaded = false;
+
+
+async function loadAllDependencies() {
+    if (dependenciesLoaded) return true;
+    
+    try {
+      // Cargar CSS primero
+      for (const css of resources.css) {
+        await loadResource(css);
+      }
+      
+      // Luego cargar JavaScript en orden
+      for (const js of resources.js) {
+        await loadResource(js);
+      }
+      
+      console.log('Todas las dependencias se cargaron correctamente');
+      dependenciesLoaded = true;
+      return true;
+    } catch (error) {
+      console.error('Error al cargar dependencias:', error);
+      return false;
+    }
+  }
+  
+
+function checkDependencies() {
+  return {
+    jQuery: typeof jQuery !== 'undefined',
+    moment: typeof moment !== 'undefined',
+    daterangepicker: typeof $.fn !== 'undefined' && typeof $.fn.daterangepicker !== 'undefined',
+    bootstrap: typeof $.fn !== 'undefined' && typeof $.fn.modal !== 'undefined'
+  };
+}
+
+// ==================== FUNCIONES DEL CHATBOT ====================
+
+function appendMessage(sender, message) {
+    const chatBody = document.getElementById('chatbot-body');
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message', sender);
+    messageElement.innerHTML = `<p>${message}</p>`;
+    chatBody.appendChild(messageElement);
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function redirectTo(url) {
+    window.location.href = url;
+}
+
 function askForLanguage() {
     const chatBody = document.getElementById('chatbot-body');
     const languageMessage = document.createElement('div');
@@ -275,34 +330,8 @@ function askForLanguage() {
         </div>
     `;
     chatBody.appendChild(languageMessage);
-    
-    // Añadir estilos para los botones de idioma
-    const style = document.createElement('style');
-    style.innerHTML = `
-        .language-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-top: 10px;
-        }
-        .language-options button {
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 5px 10px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background 0.3s;
-        }
-        .language-options button:hover {
-            background: #0056b3;
-        }
-    `;
-    document.head.appendChild(style);
 }
 
-// Función para establecer el idioma
 window.setLanguage = function(language) {
     reservationData.language = language;
     const chatBody = document.getElementById('chatbot-body');
@@ -313,7 +342,7 @@ window.setLanguage = function(language) {
         chatBody.removeChild(languageMessage);
     }
     
-    // Mostrar mensaje de bienvenida en el idioma seleccionado
+    // Mostrar mensaje de bienvenida
     const welcomeMessages = {
         es: '¡Hola! Soy tu asistente de reservas. ¿En qué puedo ayudarte hoy?',
         en: 'Hello! I am your booking assistant. How can I help you today?',
@@ -323,7 +352,12 @@ window.setLanguage = function(language) {
     
     appendMessage('bot', welcomeMessages[language]);
     
-    // Mostrar opciones de ayuda en el idioma seleccionado
+    // Actualizar UI
+    updateUIForLanguage(language);
+};
+
+function updateUIForLanguage(language) {
+    // Actualizar botones de ayuda
     const helpButtons = document.querySelectorAll('.help-buttons button');
     const helpTexts = {
         es: ['Ayuda con reservas', 'Preguntas frecuentes', 'Contactar soporte', 'Políticas'],
@@ -336,7 +370,7 @@ window.setLanguage = function(language) {
         button.textContent = helpTexts[language][index];
     });
     
-    // Actualizar placeholder del input
+    // Actualizar placeholder
     const placeholders = {
         es: 'Escribe tu mensaje...',
         en: 'Type your message...',
@@ -345,7 +379,7 @@ window.setLanguage = function(language) {
     };
     document.getElementById('user-input').placeholder = placeholders[language];
     
-    // Actualizar el título del chatbot
+    // Actualizar título
     const titles = {
         es: 'Chatbot de Reservas',
         en: 'Booking Chatbot',
@@ -353,81 +387,10 @@ window.setLanguage = function(language) {
         de: 'Buchungs-Chatbot'
     };
     document.getElementById('chatbot-header').textContent = titles[language];
-};
-
-// Función para enviar un mensaje al chatbot
-async function sendMessage() {
-    const userInput = document.getElementById('user-input').value;
-    if (!userInput) return;
-
-    appendMessage('user', userInput);
-    document.getElementById('user-input').value = '';
-
-    try {
-        const response = await fetch('https://bot.conectatec.com/send-message', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ message: userInput }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Error en la solicitud: ' + response.statusText);
-        }
-
-        const data = await response.json();
-        if (data.response) {
-            appendMessage('bot', data.response);
-            if (data.response.toLowerCase().includes('reserva') || data.response.toLowerCase().includes('reservation') || 
-                data.response.toLowerCase().includes('réservation') || data.response.toLowerCase().includes('buchung')) {
-                showReservationForm(reservationData.language);
-            }
-        } else {
-            appendMessage('bot', getTranslation('Sorry, I could not generate a response.', reservationData.language));
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        appendMessage('bot', getTranslation('There was an error processing your message.', reservationData.language));
-    }
 }
 
-// Función para agregar un mensaje al chat
-function appendMessage(sender, message) {
-    const chatBody = document.getElementById('chatbot-body');
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message', sender);
-    messageElement.innerHTML = `<p>${message}</p>`;
-    chatBody.appendChild(messageElement);
-    chatBody.scrollTop = chatBody.scrollHeight;
-}
-
-// Función para redirigir a una URL
-function redirectTo(url) {
-    window.location.href = url;
-}
-
-// Función de traducción simple
 function getTranslation(key, language) {
     const translations = {
-        'Hello, good afternoon. How can I help you?': {
-            es: 'Hola, buenas tardes. ¿En qué puedo ayudarte?',
-            en: 'Hello, good afternoon. How can I help you?',
-            fr: 'Bonjour, bon après-midi. Comment puis-je vous aider?',
-            de: 'Hallo, guten Tag. Wie kann ich Ihnen helfen?'
-        },
-        'Sorry, I could not generate a response.': {
-            es: 'Lo siento, no pude generar una respuesta.',
-            en: 'Sorry, I could not generate a response.',
-            fr: 'Désolé, je n\'ai pas pu générer de réponse.',
-            de: 'Entschuldigung, ich konnte keine Antwort generieren.'
-        },
-        'There was an error processing your message.': {
-            es: 'Hubo un error al procesar tu mensaje.',
-            en: 'There was an error processing your message.',
-            fr: 'Une erreur s\'est produite lors du traitement de votre message.',
-            de: 'Beim Verarbeiten Ihrer Nachricht ist ein Fehler aufgetreten.'
-        },
         'Reservation Form': {
             es: 'Formulario de Reserva',
             en: 'Reservation Form',
@@ -458,77 +421,22 @@ function getTranslation(key, language) {
             fr: 'Sélectionner...',
             de: 'Auswählen...'
         },
-        'room': {
-            es: 'habitación',
-            en: 'room',
-            fr: 'chambre',
-            de: 'Zimmer'
-        },
-        'rooms': {
-            es: 'habitaciones',
-            en: 'rooms',
-            fr: 'chambres',
-            de: 'Zimmer'
-        },
-        'Next': {
-            es: 'Siguiente',
-            en: 'Next',
-            fr: 'Suivant',
-            de: 'Weiter'
-        },
+        'room': { es: 'habitación', en: 'room', fr: 'chambre', de: 'Zimmer' },
+        'rooms': { es: 'habitaciones', en: 'rooms', fr: 'chambres', de: 'Zimmer' },
+        'Next': { es: 'Siguiente', en: 'Next', fr: 'Suivant', de: 'Weiter' },
         'Guest details': {
             es: 'Detalles de los huéspedes',
             en: 'Guest details',
             fr: 'Détails des invités',
             de: 'Gästedetails'
         },
-        'Room': {
-            es: 'Habitación',
-            en: 'Room',
-            fr: 'Chambre',
-            de: 'Zimmer'
-        },
-        'Adults': {
-            es: 'Adultos',
-            en: 'Adults',
-            fr: 'Adultes',
-            de: 'Erwachsene'
-        },
-        'adult': {
-            es: 'adulto',
-            en: 'adult',
-            fr: 'adulte',
-            de: 'Erwachsener'
-        },
-        'adults': {
-            es: 'adultos',
-            en: 'adults',
-            fr: 'adultes',
-            de: 'Erwachsene'
-        },
+        'Room': { es: 'Habitación', en: 'Room', fr: 'Chambre', de: 'Zimmer' },
+        'Adults': { es: 'Adultos', en: 'Adults', fr: 'Adultes', de: 'Erwachsene' },
         'Children (0-12 years)': {
             es: 'Niños (0-12 años)',
             en: 'Children (0-12 years)',
             fr: 'Enfants (0-12 ans)',
             de: 'Kinder (0-12 Jahre)'
-        },
-        'children': {
-            es: 'niños',
-            en: 'children',
-            fr: 'enfants',
-            de: 'Kinder'
-        },
-        'child': {
-            es: 'niño',
-            en: 'child',
-            fr: 'enfant',
-            de: 'Kind'
-        },
-        'Previous': {
-            es: 'Anterior',
-            en: 'Previous',
-            fr: 'Précédent',
-            de: 'Zurück'
         },
         'Additional options': {
             es: 'Opciones adicionales',
@@ -572,24 +480,9 @@ function getTranslation(key, language) {
             fr: 'Sélectionnez l\'âge',
             de: 'Alter auswählen'
         },
-        'Child': {
-            es: 'Niño',
-            en: 'Child',
-            fr: 'Enfant',
-            de: 'Kind'
-        },
-        'year': {
-            es: 'año',
-            en: 'year',
-            fr: 'an',
-            de: 'Jahr'
-        },
-        'years': {
-            es: 'años',
-            en: 'years',
-            fr: 'ans',
-            de: 'Jahre'
-        },
+        'Child': { es: 'Niño', en: 'Child', fr: 'Enfant', de: 'Kind' },
+        'year': { es: 'año', en: 'year', fr: 'an', de: 'Jahr' },
+        'years': { es: 'años', en: 'years', fr: 'ans', de: 'Jahre' },
         'Please complete all required fields.': {
             es: 'Por favor complete todos los campos requeridos.',
             en: 'Please complete all required fields.',
@@ -607,23 +500,30 @@ function getTranslation(key, language) {
             en: 'Please enter the age of all children in room {roomNumber}.',
             fr: 'Veuillez entrer l\'âge de tous les enfants dans la chambre {roomNumber}.',
             de: 'Bitte geben Sie das Alter aller Kinder in Zimmer {roomNumber} ein.'
+        },
+        'Error loading reservation system. Please try again.': {
+            es: 'Error al cargar el sistema de reservas. Por favor intente nuevamente.',
+            en: 'Error loading reservation system. Please try again.',
+            fr: 'Erreur lors du chargement du système de réservation. Veuillez réessayer.',
+            de: 'Fehler beim Laden des Reservierungssystems. Bitte versuchen Sie es erneut.'
+        },
+        'Error initializing date picker. Please try again.': {
+            es: 'Error al iniciar el selector de fechas. Por favor intente nuevamente.',
+            en: 'Error initializing date picker. Please try again.',
+            fr: 'Erreur lors de l\'initialisation du sélecteur de date. Veuillez réessayer.',
+            de: 'Fehler beim Initialisieren der Datumsauswahl. Bitte versuchen Sie es erneut.'
         }
     };
     
-    // Reemplazar marcadores de posición si existen
     if (key.includes('{roomNumber}')) {
-        const roomNumber = key.match(/\{roomNumber\}/) ? key.match(/\{roomNumber\}/)[0] : null;
-        if (roomNumber) {
-            const translated = translations[key.replace(/\{roomNumber\}/, '')]?.[language] || key;
-            return translated.replace('{roomNumber}', roomNumber);
-        }
+        const translated = translations[key.replace(/\{roomNumber\}/, '')]?.[language] || key;
+        return translated.replace('{roomNumber}', key.match(/\{roomNumber\}/)?.[0] || '');
     }
     
     return translations[key]?.[language] || key;
 }
 
-// Función para mostrar el formulario de reserva en diferentes idiomas
-function showReservationForm(language = 'es') {
+async function showReservationForm(language = 'es') {
     reservationData.language = language;
     const chatBody = document.getElementById('chatbot-body');
     const reservationForm = document.createElement('div');
@@ -631,35 +531,20 @@ function showReservationForm(language = 'es') {
     reservationForm.innerHTML = `
         <div class="reservation-form">
             <h4>${getTranslation('Reservation Form', language)}</h4>
-            
-            <div class="form-steps">
-                <!-- Los pasos se generarán dinámicamente -->
-            </div>
+            <div class="form-steps"></div>
         </div>
     `;
     chatBody.appendChild(reservationForm);
     
-    // Mostrar el primer paso en el idioma seleccionado
+    const loaded = await loadAllDependencies();
+    if (!loaded) {
+        appendMessage('bot', getTranslation('Error loading reservation system. Please try again.', language));
+        return;
+    }
+
     showReservationStep1(language);
-    
-    // Asegurarse de que jQuery y daterangepicker están cargados
-    loadDependencies();
 }
 
-// Función para cambiar el idioma del formulario
-window.changeFormLanguage = function(language) {
-    reservationData.language = language;
-    const currentStep = document.querySelector('.form-step.active');
-    if (currentStep.id === 'reservation-step-1') {
-        showReservationStep1(language);
-    } else if (currentStep.id === 'reservation-step-2') {
-        showReservationStep2(language);
-    } else if (currentStep.id === 'reservation-step-3') {
-        showReservationStep3(language);
-    }
-};
-
-// Paso 1: Fechas y número de habitaciones en diferentes idiomas
 function showReservationStep1(language) {
     const formSteps = document.querySelector('.reservation-form .form-steps');
     formSteps.innerHTML = `
@@ -684,7 +569,6 @@ function showReservationStep1(language) {
         </div>
     `;
     
-    // Configuración del datepicker según el idioma
     const localeSettings = {
         es: {
             format: 'DD/MM/YYYY',
@@ -720,7 +604,6 @@ function showReservationStep1(language) {
         }
     };
     
-    // Inicializar el datepicker
     $('#reservation-date-range').daterangepicker({
         locale: localeSettings[language] || localeSettings.es,
         opens: 'right'
@@ -732,7 +615,6 @@ function showReservationStep1(language) {
     });
 }
 
-// Validar paso 1 y mostrar paso 2
 window.validateReservationStep1 = function() {
     const language = reservationData.language;
     const dateRange = document.getElementById('reservation-date-range').value;
@@ -753,7 +635,6 @@ window.validateReservationStep1 = function() {
     showReservationStep2(language);
 };
 
-// Paso 2: Detalles por habitación en diferentes idiomas
 function showReservationStep2(language) {
     const formSteps = document.querySelector('.reservation-form .form-steps');
     let html = `
@@ -793,7 +674,7 @@ function showReservationStep2(language) {
     
     html += `
             <div class="form-navigation">
-                <button type="button" class="btn btn-prev" onclick="showReservationStep1(document.getElementById('form-language').value)">${getTranslation('Previous', language)}</button>
+                <button type="button" class="btn btn-prev" onclick="showReservationStep1('${language}')">${getTranslation('Previous', language)}</button>
                 <button type="button" class="btn btn-next" onclick="validateReservationStep2()">${getTranslation('Next', language)}</button>
             </div>
         </div>
@@ -801,7 +682,6 @@ function showReservationStep2(language) {
     
     formSteps.innerHTML = html;
     
-    // Configurar event listeners
     document.querySelectorAll('.adults-select').forEach(select => {
         select.addEventListener('change', function() {
             const roomNum = parseInt(this.dataset.room);
@@ -819,13 +699,11 @@ function showReservationStep2(language) {
         });
     });
     
-    // Inicializar selects
     for (let i = 1; i <= reservationData.roomsCount; i++) {
         updateChildrenOptions(i, language);
     }
 }
 
-// Actualizar opciones de niños según adultos seleccionados
 function updateChildrenOptions(roomNum, language) {
     const adultsSelect = document.getElementById(`adults-${roomNum}`);
     const childrenSelect = document.getElementById(`children-${roomNum}`);
@@ -833,7 +711,6 @@ function updateChildrenOptions(roomNum, language) {
     const selectedAdults = parseInt(adultsSelect.value);
     const maxChildren = maxAdults - selectedAdults;
     
-    // Actualizar opciones de niños
     const currentChildren = parseInt(childrenSelect.value);
     childrenSelect.innerHTML = `<option value="0">0 ${getTranslation('children', language)}</option>`;
     
@@ -841,7 +718,6 @@ function updateChildrenOptions(roomNum, language) {
         childrenSelect.innerHTML += `<option value="${i}">${i} ${i === 1 ? getTranslation('child', language) : getTranslation('children', language)}</option>`;
     }
     
-    // Ajustar selección actual si excede el nuevo máximo
     if (currentChildren > maxChildren) {
         childrenSelect.value = maxChildren;
         reservationData.rooms[roomNum-1].children = maxChildren;
@@ -853,7 +729,6 @@ function updateChildrenOptions(roomNum, language) {
     }
 }
 
-// Mostrar inputs de edades para niños
 function showChildrenAgesInputs(roomNum, numChildren, language) {
     const container = document.getElementById(`children-ages-${roomNum}`);
     container.innerHTML = '';
@@ -882,12 +757,10 @@ function showChildrenAgesInputs(roomNum, numChildren, language) {
     }
 }
 
-// Validar paso 2 y mostrar paso 3
 window.validateReservationStep2 = function() {
     const language = reservationData.language;
     let isValid = true;
     
-    // Validar que no se exceda el máximo de personas por habitación
     for (let i = 1; i <= reservationData.roomsCount; i++) {
         const adults = parseInt(document.getElementById(`adults-${i}`).value);
         const children = parseInt(document.getElementById(`children-${i}`).value);
@@ -897,7 +770,6 @@ window.validateReservationStep2 = function() {
             isValid = false;
         }
         
-        // Validar edades de los niños
         if (children > 0) {
             const ageInputs = document.querySelectorAll(`#children-ages-${i} .child-age`);
             for (let input of ageInputs) {
@@ -911,7 +783,6 @@ window.validateReservationStep2 = function() {
     }
     
     if (isValid) {
-        // Guardar edades de los niños
         for (let i = 1; i <= reservationData.roomsCount; i++) {
             const children = reservationData.rooms[i-1].children;
             if (children > 0) {
@@ -927,7 +798,6 @@ window.validateReservationStep2 = function() {
     }
 };
 
-// Paso 3: Cupón y residente canario en diferentes idiomas
 function showReservationStep3(language) {
     const formSteps = document.querySelector('.reservation-form .form-steps');
     formSteps.innerHTML = `
@@ -943,33 +813,23 @@ function showReservationStep3(language) {
                 </label>
             </div>
             <div class="form-navigation">
-                <button type="button" class="btn btn-prev" onclick="showReservationStep2(document.getElementById('form-language').value)">${getTranslation('Previous', language)}</button>
+                <button type="button" class="btn btn-prev" onclick="showReservationStep2('${language}')">${getTranslation('Previous', language)}</button>
                 <button type="button" class="btn btn-next" onclick="submitReservation()">${getTranslation('Book now', language)}</button>
             </div>
         </div>
     `;
 }
 
-// Enviar reserva
 window.submitReservation = function() {
-   
-    // Comprobar si el idioma es inglés o español, en caso contrario, establecer español
-    if (reservationData.language !== 'es' && reservationData.language !== 'en') {
-        reservationData.language = 'es';
-    }
-    const language = reservationData.language;
-    // Guardar datos del paso 3
+    const language = reservationData.language === 'en' ? 'en' : 'es'; // Solo soportamos español e inglés para la URL
     reservationData.coupon = document.getElementById('coupon').value;
     reservationData.isCanaryResident = document.getElementById('is-canary-resident').checked;
     
-    // Construir URL de reserva
     let url = `https://bookings.hotelparadisepark.com/${language}/book/search?loc=&dateArrival=${encodeURIComponent(reservationData.dateArrival)}&dateDeparture=${encodeURIComponent(reservationData.dateDeparture)}&roomsCount=${reservationData.roomsCount}`;
     
-    // Añadir parámetros de cada habitación
     reservationData.rooms.forEach((room, index) => {
         url += `&adults_${index+1}=${room.adults}&children_${index+1}=${room.children}`;
         
-        // Añadir edades de los niños si existen
         if (room.children > 0) {
             room.childrenAges.forEach((age, childIndex) => {
                 url += `&childage_${index+1}_${childIndex+1}=${age}`;
@@ -977,54 +837,96 @@ window.submitReservation = function() {
         }
     });
     
-    // Añadir cupón si existe
     if (reservationData.coupon) {
         url += `&coupon=${encodeURIComponent(reservationData.coupon)}`;
     }
     
-    // Añadir residente canario si está marcado
     if (reservationData.isCanaryResident) {
         url += `&resident=1`;
     }
     
-    // Redirigir a la URL de reserva
     window.location.href = url;
 };
 
-// Cargar dependencias (jQuery y daterangepicker)
-function loadDependencies() {
-    if (typeof jQuery === 'undefined') {
-        const scriptJQuery = document.createElement('script');
-        scriptJQuery.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js';
-        scriptJQuery.onload = initDateRangePicker;
-        document.head.appendChild(scriptJQuery);
-    } else {
-        initDateRangePicker();
+async function sendMessage() {
+    const userInput = document.getElementById('user-input').value;
+    if (!userInput) return;
+
+    appendMessage('user', userInput);
+    document.getElementById('user-input').value = '';
+
+    try {
+        const response = await fetch('https://bot.conectatec.com/send-message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: userInput }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Error en la solicitud: ' + response.statusText);
+        }
+
+        const data = await response.json();
+        if (data.response) {
+            appendMessage('bot', data.response);
+            if (data.response.toLowerCase().includes('reserva') || data.response.toLowerCase().includes('reservation') || 
+                data.response.toLowerCase().includes('réservation') || data.response.toLowerCase().includes('buchung')) {
+                showReservationForm(reservationData.language);
+            }
+        } else {
+            appendMessage('bot', getTranslation('Sorry, I could not generate a response.', reservationData.language));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        appendMessage('bot', getTranslation('There was an error processing your message.', reservationData.language));
     }
 }
 
-function initDateRangePicker() {
-    if (typeof $.fn.daterangepicker === 'undefined') {
-        const scriptMoment = document.createElement('script');
-        scriptMoment.src = 'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js';
-        
-        const scriptDaterangepicker = document.createElement('script');
-        scriptDaterangepicker.src = 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/3.1/daterangepicker.js';
-        
-        const linkDaterangepicker = document.createElement('link');
-        linkDaterangepicker.rel = 'stylesheet';
-        linkDaterangepicker.href = 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/3.1/daterangepicker.css';
-        
-        document.head.appendChild(scriptMoment);
-        document.head.appendChild(scriptDaterangepicker);
-        document.head.appendChild(linkDaterangepicker);
-    }
-}
-
-// Escuchar el evento "Enter" para enviar mensajes
 document.getElementById('user-input').addEventListener('keydown', function(event) {
     if (event.key === 'Enter') {
         event.preventDefault();
         sendMessage();
+    }
+});
+
+// Inicialización del chatbot
+document.getElementById('chatbot-logo').addEventListener('click', async function() {
+    const chatbotLogo = document.getElementById('chatbot-logo');
+    const chatbot = document.getElementById('chatbot');
+    chatbotLogo.style.animation = 'spin 0.5s ease';
+    setTimeout(() => {
+        chatbotLogo.style.animation = '';
+    }, 500);
+    
+    if (chatbot.classList.contains('show')) {
+        chatbot.classList.remove('show');
+        setTimeout(() => {
+            chatbot.style.display = 'none';
+        }, 300);
+    } else {
+        chatbot.style.display = 'block';
+        setTimeout(() => {
+            chatbot.classList.add('show');
+            
+            // Cargar dependencias al abrir el chat por primera vez
+            if (!chatbot.dataset.initialized) {
+                loadAllDependencies().then(loaded => {
+                    if (loaded) {
+                        if (!chatbot.dataset.greeted) {
+                            askForLanguage();
+                            chatbot.dataset.greeted = 'true';
+                        }
+                    } else {
+                        appendMessage('bot', 'Error al cargar las dependencias. Por favor recarga la página.');
+                    }
+                });
+                chatbot.dataset.initialized = 'true';
+            } else if (!chatbot.dataset.greeted) {
+                askForLanguage();
+                chatbot.dataset.greeted = 'true';
+            }
+        }, 10);
     }
 });
