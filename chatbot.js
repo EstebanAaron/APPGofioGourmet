@@ -1,3 +1,36 @@
+// Añadir Bootstrap CSS
+const bootstrapCSS = document.createElement('link');
+bootstrapCSS.href = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css';
+bootstrapCSS.rel = 'stylesheet';
+document.head.appendChild(bootstrapCSS);
+
+// Añadir daterangepicker CSS
+const daterangepickerCSS = document.createElement('link');
+daterangepickerCSS.href = 'https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css';
+daterangepickerCSS.rel = 'stylesheet';
+document.head.appendChild(daterangepickerCSS);
+
+// Añadir jQuery
+const jQueryScript = document.createElement('script');
+jQueryScript.src = 'https://code.jquery.com/jquery-3.5.1.min.js';
+document.head.appendChild(jQueryScript);
+
+// Añadir Bootstrap JS
+const bootstrapScript = document.createElement('script');
+bootstrapScript.src = 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js';
+document.head.appendChild(bootstrapScript);
+
+// Añadir moment.js
+const momentScript = document.createElement('script');
+momentScript.src = 'https://cdn.jsdelivr.net/momentjs/latest/moment.min.js';
+document.head.appendChild(momentScript);
+
+// Añadir daterangepicker JS
+const daterangepickerScript = document.createElement('script');
+daterangepickerScript.src = 'https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js';
+document.head.appendChild(daterangepickerScript);
+
+
 // Añadir estilos al documento
 const style = document.createElement('style');
 style.innerHTML = `
